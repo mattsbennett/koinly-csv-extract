@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from decimal import Decimal
 import os
 import typer
@@ -11,11 +12,17 @@ import time
 from modules.State import state
 from modules.TxTypes import KoinlyTX, transformErgopadVesting, transformManyOn1Trades, transformDefault, transformEarlyErgopadVesting, transformSpectrumLiquidity, transformStaking
 
+load_dotenv()
+
 app = typer.Typer()
 
 def fetchErgoPriceHistory():
     print("Fetching ergo price history from coingecko...")
-    res = requests.get(f"https://api.coingecko.com/api/v3/coins/ergo/market_chart/range?vs_currency=usd&from=1561939200&to={int(time.time())}")
+    cg_api_key = os.getenv("COINGECKO_API_KEY")
+    print(cg_api_key)
+    cg_api_url = f"https://api.coingecko.com/api/v3/coins/ergo/market_chart/range?vs_currency=usd&from=1561939200&to={int(time.time())}&x_cg_demo_api_key={cg_api_key}"
+    print(cg_api_url)
+    res = requests.get(cg_api_url)
     if res.ok:
         for price in res.json()["prices"]:
             state.ergoPriceHistory[int(price[0]/86400000)*86400] = Decimal(price[1])
@@ -62,7 +69,7 @@ def analyzeTransactions():
             fromAddresses[input["address"]] = 1 + (fromAddresses[input["address"]] if input["address"] in fromAddresses.keys() else 0)
         for output in transaction["outputs"]:
             toAddresses[output["address"]] = 1 + (toAddresses[output["address"]] if output["address"] in toAddresses.keys() else 0)
-    fromAddressesSorted = sorted(fromAddresses.items(), key = lambda item: item[1], reverse=True) 
+    fromAddressesSorted = sorted(fromAddresses.items(), key = lambda item: item[1], reverse=True)
     toAddressesSorted = sorted(toAddresses.items(), key = lambda item: item[1], reverse=True)
     frequentAddressTable = Table("Address sent to you","Count","Address you sent to", "Count")
     for i in range(10):

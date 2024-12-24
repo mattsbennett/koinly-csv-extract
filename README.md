@@ -12,19 +12,24 @@ Extract of ergo transactions in koinly csv format. Please keep in mind this is a
 ## Requirements
 To use this tool you need to have [Python](https://www.python.org/) installed. Once it has been tested I will generate standalone executables to make it easier for the average user.
 
+You will need a coingecko api key to fetch the price of tokens. You can get one by registering at [coingecko](https://www.coingecko.com/en/api) and then add it to a `.env` file in the same folder as the script like this:
+```
+COINGECKO_API_KEY="yourapikey"
+```
+
 ## Usage
 1. Download the files in this repository using either git or just download (Green "Code" dropdown on top right -> "Download as zip")
 2. In the folder with the downloaded files edit the file "wallets.json" with a text editor to match your needs.
 3. *First use only* Install required Python packages with pip by calling this command:
 ```
 pip install -r requirements.txt
-``` 
+```
 4. Run the extraction, it will generate a csv for each wallet defined in wallets.json
 ```
 python main.py extract
 ```
 
-If you want to extract transactions in a specific block range only (fe. between block 123000 and 450000) you can add parameters like this:
+If you want to extract transactions in a specific block range only (fe. between block 400000 and 450000) you can add parameters like this:
 ```
-python main.py extract 123000 450000
+python main.py extract --fromheight 400000 --toheight 450000
 ```
