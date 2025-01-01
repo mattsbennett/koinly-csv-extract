@@ -20,12 +20,12 @@ def fetchErgoPriceHistory():
     print("Fetching ergo price history from coingecko...")
     cg_api_key = os.getenv("COINGECKO_API_KEY")
     print(cg_api_key)
-    cg_api_url = f"https://api.coingecko.com/api/v3/coins/ergo/market_chart/range?vs_currency=usd&from=1561939200&to={int(time.time())}&x_cg_demo_api_key={cg_api_key}"
+    cg_api_url = f"https://api.coingecko.com/api/v3/coins/ergo/market_chart/range?vs_currency=usd&from=1704096000&to={int(time.time())}&x_cg_demo_api_key={cg_api_key}"
     print(cg_api_url)
     res = requests.get(cg_api_url)
     if res.ok:
         for price in res.json()["prices"]:
-            state.ergoPriceHistory[int(price[0]/86400000)*86400] = Decimal(price[1])
+            state.ergoPriceHistory[int(price[0])] = Decimal(price[1])
         print("Done fetching ergo price history from coingecko")
     else:
         res.raise_for_status()

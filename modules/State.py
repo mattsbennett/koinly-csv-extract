@@ -33,21 +33,25 @@ class State:
             for address in wallet["addresses"]:
                 self.allOwnAddresses.append(address)
 
+    def closest(self, lst, K):
+        return lst[min(range(len(lst)), key = lambda i: abs(lst[i]-K))]
+
     def getErgoPrice(self, timestamp: int) -> Decimal:
-        return self.ergoPriceHistory.get(int(timestamp/86400000)*86400)
-    
+        closestTimestamp = self.closest(list(self.ergoPriceHistory.keys()),timestamp)
+        return self.ergoPriceHistory.get(closestTimestamp,0)
+
     def getTokenName(self, tokenId):
         if tokenId in self.tokens.keys():
             return (self.tokens[tokenId]["name"] if self.tokens[tokenId]["name"] else "Unknown").replace('"','')
         elif tokenId in self.nfts.keys():
             return (self.nfts[tokenId]["name"] if self.nfts[tokenId]["name"] else "Unknown").replace('"','')
-    
+
     def koinlyToken(self, tokenId: str) -> str:
         if tokenId in self.tokens.keys():
             return 'NULL'+str(list(self.tokens.keys()).index(tokenId)+1)
         elif tokenId in self.nfts.keys():
             return 'NFT'+str(list(self.nfts.keys()).index(tokenId)+1)
-        
+
     def registerAsset(self, asset):
         if (asset["tokenId"] not in self.tokens.keys() and asset["tokenId"] not in self.nfts.keys()):
             if (asset["amount"] == 1):
