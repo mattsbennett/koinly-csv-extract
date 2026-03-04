@@ -20,7 +20,7 @@ def fetchErgoPriceHistory():
     print("Fetching ergo price history from coingecko...")
     cg_api_key = os.getenv("COINGECKO_API_KEY")
     print(cg_api_key)
-    cg_api_url = f"https://api.coingecko.com/api/v3/coins/ergo/market_chart/range?vs_currency=usd&from=1704096000&to={int(time.time())}&x_cg_demo_api_key={cg_api_key}"
+    cg_api_url = f"https://pro-api.coingecko.com/api/v3/coins/ergo/market_chart/range?vs_currency=usd&from=1735689600&to=1767225599&x_cg_pro_api_key={cg_api_key}"
     print(cg_api_url)
     res = requests.get(cg_api_url)
     if res.ok:
@@ -119,7 +119,7 @@ def analyze(address: str, fromHeight: int = 0, toHeight: int = None):
     analyzeTransactions()
 
 @app.command()
-def extract(fromHeight: int = 0, toHeight: int = None):
+def extract(fromHeight: int = 1429491, toHeight: int = None):
     toHeight = toHeight if toHeight else getCurrentHeight()
     fetchErgoPriceHistory()
     for wallet in state.wallets:

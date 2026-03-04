@@ -2,11 +2,14 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 import os
 import json
+import time
 import requests
 from modules.Balance import inOutBalance
 from modules.Config import Config
 
 from modules.State import state
+
+tokenPriceCache = {}
 from modules.Vesting import Vesting
 
 from rich import print
@@ -60,14 +63,34 @@ class KoinlyTX:
 
 def getTokenPrice(token: str, t: int):
     if token in Config.config["tokensWithValue"].keys():
+        # Cache by token + day (ms timestamp rounded to day)
+        day_key = (token, t // 86400000)
+        if day_key in tokenPriceCache:
+            return tokenPriceCache[day_key]
+
         ergoPrice = state.getErgoPrice(t)
-        res = requests.get(f"https://api.ergopad.io/asset/price/{Config.config['tokensWithValue'][token]}/{t}")
-        if res.ok:
-            if token == "SigUSD":
-                return min(Decimal(1.1),max(Decimal(0.9),Decimal(res.json()["price"])*ergoPrice))
-            return Decimal(res.json()["price"])*ergoPrice
+        price = None
+        for attempt in range(3):
+            res = requests.get(f"https://api.cruxfinance.io/spectrum/price?token_id={token}&time_point={t}")
+            if res.ok:
+                price = Decimal(str(res.json()["asset_price_erg"]))
+                break
+            if res.status_code in (429, 502, 503, 504):
+                time.sleep(2 ** attempt)
+            else:
+                res.raise_for_status()
+
+        if price is None:
+            print(f"[yellow]Warning: failed to get price for {Config.config['tokensWithValue'][token]} after retries, using 0[/yellow]")
+            tokenPriceCache[day_key] = Decimal(0)
+            return Decimal(0)
+
+        if token == "03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04":
+            result = min(Decimal(1.1),max(Decimal(0.9),price*ergoPrice))
         else:
-            return res.raise_for_status()
+            result = price*ergoPrice
+        tokenPriceCache[day_key] = result
+        return result
     else:
         return Decimal(0)
 
